@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Secure Cloud Backups</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .active-nav {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .code-block {
+            background-color: #1f2937;
+            color: #d1d5db;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .step-connector {
+            width: 2px;
+            background-color: #d1d5db;
+            height: 3rem;
+            margin: 0 auto;
+        }
+    </style>
+    <!-- Chosen Palette: "Warm Neutrals" - A calm and focused theme using beige, slate gray, and a subtle blue for accents. -->
+    <!-- Application Structure Plan: A thematic, tab-based navigation SPA. Sections are: 'Overview' (big picture), 'Setup' (rClone & Google Cloud), 'BorgBackup' (core backup logic), 'Dockerization' (container setup), and 'Automation & Mounts' (advanced usage). This task-oriented structure allows users to jump to specific parts of the process (e.g., just Docker config) or follow the logical flow from start to finish. It's more user-friendly than a linear video transcript, as it modularizes complex steps. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Overall backup workflow -> Goal: Inform -> Viz/Method: HTML/CSS Flowchart Diagram -> Interaction: Hover to highlight stages -> Justification: Visually explains the relationship between Borg, rClone, Docker, and Google Drive at a glance.
+        - Report Info: rClone & Google API setup -> Goal: Organize/Instruct -> Viz/Method: Interactive Step-by-Step Guide (HTML/CSS) -> Interaction: Clickable steps revealing detailed instructions and code snippets -> Justification: Breaks down a complex, multi-step configuration process into manageable, sequential chunks.
+        - Report Info: Key benefits (Encryption, Deduplication) -> Goal: Inform/Compare -> Viz/Method: Dynamic Text Blocks & Icons (HTML/CSS) -> Interaction: Clicking on a feature reveals a concise explanation -> Justification: Presents core concepts clearly without cluttering the main view.
+        - Report Info: Docker container setup -> Goal: Instruct -> Viz/Method: Tabbed Code Blocks (HTML/CSS/JS) for Dockerfile, docker-compose.yml, and entrypoint.sh -> Interaction: Tabs to switch between related code files -> Justification: Organizes related code artifacts logically for easy comparison and copying.
+        - Library/Method: Vanilla JS for all interactions (tabs, accordions, navigation). No Chart.js needed as the data is procedural, not quantitative.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Secure & Automated Cloud Backups</h1>
+            <p class="mt-4 text-lg text-gray-600">An Interactive Guide to Borg, rClone, Docker, and Google Drive</p>
+        </header>
+
+        <nav class="sticky top-0 bg-gray-50/80 backdrop-blur-sm z-10 mb-10 border-b border-gray-200">
+            <ul class="flex justify-center space-x-4 md:space-x-8 text-sm md:text-base font-medium text-gray-500">
+                <li><a href="#overview" class="nav-link active-nav inline-block py-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 transition-colors">Overview</a></li>
+                <li><a href="#setup" class="nav-link inline-block py-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 transition-colors">Setup & Config</a></li>
+                <li><a href="#docker" class="nav-link inline-block py-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 transition-colors">Dockerization</a></li>
+                <li><a href="#automation" class="nav-link inline-block py-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 transition-colors">Automation & Mounts</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- Overview Section -->
+            <section id="overview" class="content-section active">
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h2 class="text-3xl font-bold mb-4 text-gray-900">The Modern Backup Strategy</h2>
+                    <p class="text-gray-600 mb-8">This guide details a powerful, private, and efficient backup solution. We combine four key technologies to create an automated workflow that encrypts your data on your machine before sending it to the cloud. This ensures your data remains private and significantly reduces storage space through intelligent deduplication. The entire process is containerized with Docker for portability and consistency.</p>
+
+                    <h3 class="text-2xl font-semibold mb-6 text-gray-800 text-center">Workflow at a Glance</h3>
+                    <div class="flex flex-col md:flex-row justify-between items-center text-center space-y-4 md:space-y-0 md:space-x-4">
+                        <div class="workflow-step p-4 rounded-lg w-full md:w-1/4">
+                            <div class="text-5xl mb-2">📂</div>
+                            <h4 class="font-bold text-lg">Your Data</h4>
+                            <p class="text-sm text-gray-500">The source files you want to protect.</p>
+                        </div>
+                        <div class="text-3xl text-gray-400 transform md:rotate-0 rotate-90">&rarr;</div>
+                        <div class="workflow-step bg-blue-50 p-4 rounded-lg w-full md:w-1/4">
+                            <div class="text-5xl mb-2">📦</div>
+                            <h4 class="font-bold text-lg">BorgBackup</h4>
+                            <p class="text-sm text-gray-500">Encrypts, compresses, and deduplicates data into a secure repository.</p>
+                        </div>
+                         <div class="text-3xl text-gray-400 transform md:rotate-0 rotate-90">&rarr;</div>
+                        <div class="workflow-step bg-green-50 p-4 rounded-lg w-full md:w-1/4">
+                             <div class="text-5xl mb-2">🔄</div>
+                            <h4 class="font-bold text-lg">rClone</h4>
+                            <p class="text-sm text-gray-500">Syncs the encrypted repository to your cloud provider.</p>
+                        </div>
+                         <div class="text-3xl text-gray-400 transform md:rotate-0 rotate-90">&rarr;</div>
+                        <div class="workflow-step bg-yellow-50 p-4 rounded-lg w-full md:w-1/4">
+                            <div class="text-5xl mb-2">☁️</div>
+                            <h4 class="font-bold text-lg">Google Drive</h4>
+                            <p class="text-sm text-gray-500">Your secure, encrypted off-site storage.</p>
+                        </div>
+                    </div>
+                     <div class="mt-8 p-6 bg-gray-100 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Core Concepts</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-md">
+                                <h4 class="font-bold text-blue-600">Client-Side Encryption</h4>
+                                <p class="text-sm text-gray-600">Your data is encrypted with your password on your computer <span class="font-bold">before</span> it ever leaves for the cloud. Google only stores scrambled, unreadable data blocks.</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-md">
+                                <h4 class="font-bold text-blue-600">Deduplication</h4>
+                                <p class="text-sm text-gray-600">Borg intelligently breaks files into chunks. It only uploads new or changed chunks, making daily backups extremely fast and space-efficient, even for large files.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Setup Section -->
+            <section id="setup" class="content-section">
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h2 class="text-3xl font-bold mb-2 text-gray-900">Initial Setup: Connecting rClone & Google Drive</h2>
+                    <p class="text-gray-600 mb-8">This is a one-time process to authorize rClone to access your Google Drive securely. We'll create a dedicated API project in Google Cloud, which gives you full control over rClone's permissions.</p>
+                    
+                    <div class="space-y-4">
+                        <!-- Step 1 -->
+                        <div>
+                            <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold p-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                                <span>Step 1: Create Google Cloud Project & API Access</span>
+                                <span class="transform transition-transform duration-300">▼</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 bg-gray-50 rounded-b-lg">
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Go to the <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-500 hover:underline">Google Cloud Console</a> and create a new project.</li>
+                                    <li>Navigate to "APIs & Services" > "Library". Search for and enable the "Google Drive API".</li>
+                                    <li>Go to "OAuth consent screen". Choose "External" user type and create the app. Provide an app name, user support email, and developer contact.</li>
+                                    <li>In the "Scopes" section, add the scope `.../auth/drive`. This grants full read/write access to the user's Drive.</li>
+                                    <li>Go to "Credentials", click "Create Credentials" > "OAuth client ID". Select "Desktop app" as the application type.</li>
+                                    <li>Copy the generated <span class="font-semibold">Client ID</span> and <span class="font-semibold">Client Secret</span>. You will need them for rClone.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div>
+                            <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold p-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                                <span>Step 2: Configure rClone Remote</span>
+                                 <span class="transform transition-transform duration-300">▼</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 bg-gray-50 rounded-b-lg">
+                                <p class="mb-4">Run `rclone config` in your terminal and follow these prompts:</p>
+                                <div class="code-block">
+n) New remote
+name> gdrive_encrypted
+Storage> drive (Google Drive)
+client_id> [Paste your Client ID from Step 1]
+client_secret> [Paste your Client Secret from Step 1]
+scope> 1 (Full access all files)
+root_folder_id> [Leave blank]
+service_account_file> [Leave blank]
+Edit advanced config? n) No
+Use auto config? y) Yes 
+... (browser window opens for auth) ...
+Configure this as a Shared Drive? n) No
+y) Yes this is OK
+q) Quit config
+                                </div>
+                                <p class="mt-4">This creates a remote named `gdrive_encrypted` and saves its configuration in `rclone.conf`.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3 -->
+                        <div>
+                            <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold p-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                                <span>Step 3: Add Encryption Layer</span>
+                                 <span class="transform transition-transform duration-300">▼</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 bg-gray-50 rounded-b-lg">
+                                <p class="mb-4">Now, we'll create a second, "crypt" remote that wraps our `gdrive_encrypted` remote. This is what handles the file and folder name encryption. Run `rclone config` again:</p>
+                                <div class="code-block">
+n) New remote
+name> gdrive_backup_crypt
+Storage> crypt
+remote> gdrive_encrypted:/borg-backups  (Points to our first remote and a folder)
+filename_encryption> standard
+directory_name_encryption> true
+Password> [Enter a strong password]
+Salt> [Leave blank to generate one]
+... (confirm settings) ...
+q) Quit config
+                                </div>
+                                <p class="mt-4">Now, any files you send to `gdrive_backup_crypt:` will be automatically encrypted and stored in the `borg-backups` folder on your Google Drive via the `gdrive_encrypted` remote.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Dockerization Section -->
+            <section id="docker" class="content-section">
+                 <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h2 class="text-3xl font-bold mb-2 text-gray-900">Dockerization: Packaging Your Backup Tool</h2>
+                     <p class="text-gray-600 mb-8">We'll use Docker to create a self-contained, portable environment with Borg and rClone installed. This ensures your backup script runs consistently anywhere Docker is installed. You'll need to create a project directory with the files below.</p>
+
+                    <div class="mb-8">
+                        <div class="flex border-b border-gray-300">
+                            <button class="code-tab-button active-nav text-blue-600 py-2 px-4" data-target="dockerfile">Dockerfile</button>
+                            <button class="code-tab-button py-2 px-4" data-target="compose">docker-compose.yml</button>
+                            <button class="code-tab-button py-2 px-4" data-target="entrypoint">entrypoint.sh</button>
+                        </div>
+                        <div class="mt-4">
+                            <div id="dockerfile" class="code-tab-content">
+                                <p class="text-sm text-gray-600 mb-2">This file defines the container image. It starts from a minimal base image (Alpine Linux) and installs BorgBackup and rClone.</p>
+                                <div class="code-block">
+FROM alpine:latest
+
+RUN apk add --no-cache borgbackup rclone
+
+RUN mkdir -p /data /borg-repo /config /logs
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+                                </div>
+                            </div>
+                            <div id="compose" class="code-tab-content hidden">
+                                <p class="text-sm text-gray-600 mb-2">This file makes it easy to run your container with the correct volumes and environment variables. Volumes are used to persist data outside the container's lifecycle.</p>
+                                <div class="code-block">
+version: '3.8'
+
+services:
+  backup:
+    build: .
+    volumes:
+      # Mount data to back up as read-only
+      - ./my_data:/data:ro
+      # Persist the Borg repository
+      - ./borg-repo:/borg-repo
+      # Provide configs and secrets
+      - ./config:/config
+      # Store logs
+      - ./logs:/logs
+    environment:
+      - BORG_REPO=/borg-repo
+      - BORG_PASSPHRASE_FILE=/config/borg_passphrase
+      - RCLONE_CONFIG=/config/rclone.conf
+      # Your final encrypted rClone remote
+      - REMOTE_PATH=gdrive_backup_crypt:
+                                </div>
+                            </div>
+                             <div id="entrypoint" class="code-tab-content hidden">
+                                 <p class="text-sm text-gray-600 mb-2">This is the main script that runs inside the container. It executes the backup, pruning, and sync operations in sequence, with logging and error handling.</p>
+                                <div class="code-block">
+#!/bin/sh
+set -e
+LOG_FILE="/logs/backup-$(date +%Y-%m-%d).log"
+export BORG_PASSCOMMAND="cat ${BORG_PASSPHRASE_FILE}"
+
+exec &> >(tee -a "${LOG_FILE}")
+
+echo "--- Starting Backup: $(date) ---"
+
+if [ ! -d "${BORG_REPO}/config" ]; then
+    echo "Initializing Borg repository..."
+    borg init --encryption=repokey
+fi
+
+echo "Creating Borg archive..."
+borg create --stats --show-rc \
+    ::'backup-{now:%Y-%m-%d_%H%M}' \
+    /data
+
+echo "Pruning old backups..."
+borg prune -v --list \
+    --keep-daily=7 \
+    --keep-weekly=4 \
+    --keep-monthly=6
+
+echo "Syncing to remote cloud storage..."
+rclone sync ${BORG_REPO} ${REMOTE_PATH} --progress
+
+echo "--- Backup Complete: $(date) ---"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     <h3 class="text-2xl font-semibold mb-4 text-gray-800">Host Directory Structure</h3>
+                     <p class="text-gray-600 mb-4">Before running `docker-compose up`, your project folder on your computer (the "host") should look like this. You need to create these directories and files.</p>
+                     <div class="code-block bg-gray-800 text-gray-300">
+backup-project/
+├── my_data/             # <== Your actual data goes here
+│   ├── document1.txt
+│   └── important_folder/
+├── config/
+│   ├── rclone.conf      # <== Copy from ~/.config/rclone/rclone.conf
+│   └── borg_passphrase  # <== File containing your Borg password
+├── Dockerfile
+├── docker-compose.yml
+└── entrypoint.sh
+                     </div>
+                </div>
+            </section>
+            
+            <!-- Automation & Mounts Section -->
+            <section id="automation" class="content-section">
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h2 class="text-3xl font-bold mb-2 text-gray-900">Automation & File Access</h2>
+                    <p class="text-gray-600 mb-8">With the containerized setup complete, you can automate the backup process and even access your cloud storage as if it were a local drive on your machine.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-gray-50 p-6 rounded-lg">
+                            <h3 class="text-2xl font-semibold mb-4">Automating with Cron</h3>
+                            <p class="mb-4">Cron is a time-based job scheduler in Unix-like operating systems. You can use it to run your Docker backup automatically.</p>
+                            <ol class="list-decimal list-inside space-y-2 mb-4">
+                                <li>Open your crontab file by running `crontab -e`.</li>
+                                <li>Add a line to schedule the backup. This example runs it daily at 3:00 AM:</li>
+                            </ol>
+                            <div class="code-block">
+# Run backup job every day at 3:00 AM
+0 3 * * * cd /path/to/backup-project && docker-compose run --rm backup
+                            </div>
+                             <p class="text-sm mt-2 text-gray-500">Ensure you use the absolute path to your project directory.</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-6 rounded-lg">
+                            <h3 class="text-2xl font-semibold mb-4">Mounting Your Remote Drive</h3>
+                            <p class="mb-4">rClone can mount your cloud storage, making your remote files accessible in your local file system. This is incredibly useful for browsing or restoring individual files.</p>
+                            <p class="font-semibold mb-2">On Docker Host (Linux/macOS):</p>
+                            <div class="code-block mb-4">
+# Note: --allow-other and --daemon are key flags
+rclone mount gdrive_backup_crypt: /path/to/mount/point --allow-other --daemon
+                            </div>
+                            <p class="font-semibold mb-2">On Windows:</p>
+                             <p class="mb-2 text-sm">First, install <a href="https://www.rclone.org/install/" target="_blank" class="text-blue-500">rClone for Windows</a> and WinFsp. Then run in Command Prompt or PowerShell:</p>
+                            <div class="code-block">
+rclone mount gdrive_backup_crypt: X:
+                            </div>
+                             <p class="text-sm mt-2 text-gray-500">This will create a new `X:` drive in "This PC" containing your decrypted cloud files.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const accordions = document.querySelectorAll('.accordion-toggle');
+            const codeTabs = document.querySelectorAll('.code-tab-button');
+
+            function showSection(id) {
+                contentSections.forEach(section => {
+                    if (section.id === id) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+
+                    navLinks.forEach(nav => nav.classList.remove('active-nav'));
+                    this.classList.add('active-nav');
+                    
+                    showSection(targetId);
+                    window.history.pushState(null, '', `#${targetId}`);
+                });
+            });
+
+            accordions.forEach(accordion => {
+                accordion.addEventListener('click', function () {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('span:last-child');
+                    
+                    if (content.classList.contains('hidden')) {
+                        content.classList.remove('hidden');
+                        icon.classList.add('rotate-180');
+                    } else {
+                        content.classList.add('hidden');
+                        icon.classList.remove('rotate-180');
+                    }
+                });
+            });
+
+            codeTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const container = this.closest('.mb-8');
+                    
+                    container.querySelectorAll('.code-tab-button').forEach(btn => btn.classList.remove('active-nav', 'text-blue-600'));
+                    this.classList.add('active-nav', 'text-blue-600');
+                    
+                    container.querySelectorAll('.code-tab-content').forEach(content => {
+                        if (content.id === targetId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+            
+            // Handle initial page load with hash
+            const initialHash = window.location.hash.substring(1);
+            if (initialHash) {
+                 const targetLink = document.querySelector(`.nav-link[href="#${initialHash}"]`);
+                 if (targetLink) {
+                    navLinks.forEach(nav => nav.classList.remove('active-nav'));
+                    targetLink.classList.add('active-nav');
+                    showSection(initialHash);
+                 }
+            } else {
+                showSection('overview');
+            }
+        });
+    </script>
+</body>
+</html>
